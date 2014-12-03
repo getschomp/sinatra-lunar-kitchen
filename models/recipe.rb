@@ -1,19 +1,9 @@
+require 'pry'
 class Recipe
   attr_reader :results
-  
+
   def initialize
     @results = []
-  end
-
-  def db_connection
-    begin
-      connection = PG.connect(dbname: 'recipes')
-
-      yield(connection)
-
-    ensure
-      connection.close
-    end
   end
 
   def self.all
@@ -21,8 +11,15 @@ class Recipe
       SELECT name, id FROM recipes ORDER BY name LIMIT 20;
     }
 
-    db_connection do |conn|
-      @results = conn.exec_params(sql)
+    begin
+      connection = PG.connect(dbname: 'recipes')
+      @results = connection.exec_params(sql).to_a
+    ensure
+      connection.close
     end
+  end
+  binding.pry
+  def self.id
+    @results[:id]
   end
 end
